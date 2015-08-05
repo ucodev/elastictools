@@ -4,7 +4,7 @@
 # @brief uCodev Elastic Tools
 #        Main classes and procedures for Elasticsearch communication and handling
 #
-# Date: 02/08/2015
+# Date: 05/08/2015
 #
 #   Copyright 2015  Pedro A. Hortas (pah@ucodev.org)
 #
@@ -27,7 +27,7 @@
 #
 # Author: Pedro A. Hortas
 # Email:  pah@ucodev.org
-# Date:   02/08/2015
+# Date:   05/08/2015
 #
 
 import sys
@@ -191,7 +191,11 @@ class ESNode(ESCluster):
 				self.node_list_data.append([ node, node_stat["nodes"][node]["name"], node_stat["nodes"][node]["ip"] ])
 				continue
 
-			if node_stat["nodes"][node]["attributes"]["data"] == True:
+			if ("data" in node_stat["nodes"][node]["attributes"] and node_stat["nodes"][node]["attributes"]["data"] == True) or ("master" in node_stat["nodes"][node]["attributes"]):
+				# FIXME: (?) If "master" key is present in
+				# attributes, regardless of it's value
+				# does it mean it's a data node? We're
+				# assuming so here.
 				self.node_list_data.append([ node, node_stat["nodes"][node]["name"], node_stat["nodes"][node]["ip"] ])
 
 		return self.node_list_data
@@ -211,7 +215,7 @@ class ESNode(ESCluster):
 			if "attributes" not in node_stat["nodes"][node]:
 				continue
 
-			if node_stat["nodes"][node]["attributes"]["client"] == "true":
+			if "client" in node_stat["nodes"][node]["attributes"] and node_stat["nodes"][node]["attributes"]["client"] == "true":
 				self.node_list_client.append([ node, node_stat["nodes"][node]["name"], node_stat["nodes"][node]["ip"] ])
 
 		return self.node_list_client
@@ -361,7 +365,7 @@ class ESShard(ESIndex):
 			shard_node = None
 
 			# If the shard is assigned, there's more data to parse
-			if shard_state != "UNASSIGNED":
+			if shard_state != "UNASSIGNED" and shard_state != "INITIALIZING":
 				shard_data_extra = pat.group(5).strip(' ')
 
 				pat = re.search("^(\d+)\s+(\d+)\s+([a-zA-Z\-\.0-9]+)\s+(.+)$", shard_data_extra)
