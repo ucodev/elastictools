@@ -301,6 +301,13 @@ class UETAnalyze(ESShard):
 
 			if self.shard_data["initializing_count"]:
 				print("       [w] There are shards in initializing state (p: %d, r: %d)." % (self.index_data["initializing_primary_count"], self.index_data["initializing_replica_count"]))
+
+			if self.cluster_data["relocating_shards"]:
+				print("       [w] There are shards being relocated")
+
+			if (len(self.shard_data["list"]) / self.index_data["total_replica"]) < (self.cluster_data["number_of_nodes"] - 1):
+				print("       [w] Number of replicas should be set to %d (currently set to %d)" % (self.cluster_data["number_of_nodes"] - 1, (len(self.shard_data["list"]) / self.index_data["total_replica"])))
+
 		else:
 			print(" [+] All indices look good.")
 
