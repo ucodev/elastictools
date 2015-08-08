@@ -4,7 +4,7 @@
 # @brief uCodev Elastic Tools
 #        Main classes and procedures for Elasticsearch communication and handling
 #
-# Date: 05/08/2015
+# Date: 08/08/2015
 #
 #   Copyright 2015  Pedro A. Hortas (pah@ucodev.org)
 #
@@ -365,7 +365,7 @@ class ESShard(ESIndex):
 			shard_node = None
 
 			# If the shard is assigned, there's more data to parse
-			if shard_state != "UNASSIGNED" and shard_state != "INITIALIZING":
+			if shard_state == "STARTED":
 				shard_data_extra = pat.group(5).strip(' ')
 
 				pat = re.search("^(\d+)\s+(\d+)\s+([a-zA-Z\-\.0-9]+)\s+(.+)$", shard_data_extra)
@@ -379,6 +379,20 @@ class ESShard(ESIndex):
 				shard_size = pat.group(2).strip(' ')
 				shard_host = pat.group(3).strip(' ')
 				shard_node = pat.group(4).strip(' ')
+			elif shard_state == "INITIALIZING":
+				shard_data_extra = pat.group(5).strip(' ')
+
+				pat = re.search("^([a-zA-Z\-\.0-9]+)\s+(.+)$", shard_data_extra)
+
+				if not pat:
+					self.warnings += 1
+					print("Unrecognized shard extra data: %s" % shard_data_extra)
+					continue
+
+				shard_host = pat.group(1).strip(' ')
+				shard_node = pat.group(2).strip(' ')
+			#elif shard_state == "UNASSIGNED":
+				
 
 			# If there's info regarding the node, process it
 			if shard_node != None:

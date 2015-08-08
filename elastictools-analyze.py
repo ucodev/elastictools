@@ -4,7 +4,7 @@
 # @brief uCodev Elastic Tools
 #        Status analyzer and reporting tool for Elasticsearch clusters.
 #
-# Date: 02/08/2015
+# Date: 08/08/2015
 #
 #   Copyright 2015  Pedro A. Hortas (pah@ucodev.org)
 #
@@ -79,6 +79,7 @@ class UETAnalyze(ESShard):
 		self.cluster_data["unassigned_shards"] = cluster_health["unassigned_shards"]
 		self.cluster_data["indices"] = cluster_health["indices"]
 		self.cluster_data["state"] = self.cluster_get_state()
+		self.cluster_data["routing_allocation_enable"] = self.cluster_settings_get("cluster.routing.allocation.enable", "persistent")
 
 		# Node
 		self.node_data["total_count"] = self.node_get_count()
@@ -287,6 +288,13 @@ class UETAnalyze(ESShard):
 	def tool_report_print(self):
 		print("Report:\n")
 
+		# Cluster
+		if self.cluster_data["routing_allocation_enable"] != "all":
+			print(" [-] Cluster routing allocation isn't enabled for all indices.")
+		else:
+			print(" [+] Everything seems fine with cluster settings.")
+
+		# Index
 		if self.index_data["total_green"] != len(self.index_data["list"]):
 			print(" [-] More than one index have problems.")
 
