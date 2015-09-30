@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-# @file dev-elevator.sh
+# @file do-snapshot.sh
 # @brief uCodev Elastic Tools - Utilities
-#        Retrieves the elevator assigned to a device support a specific fs path
+#	 Creates a snapshot
 #
-# Date: 08/08/2015
+# Date: 30/09/2015
 #
 #   Copyright 2015  Pedro A. Hortas (pah@ucodev.org)
 #
@@ -27,29 +27,21 @@
 #
 # Author: Pedro A. Hortas
 # Email:  pah@ucodev.org
-# Date:   08/08/2015
+# Date:   19/08/2015
 #
 
-# TODO: LVM not yet supported, but it's planned
-
-if [ $# -ne 1 ]; then
-	echo "Usage: ${0} <path>"
+if [ $# -lt 3 ]; then
+	echo "Usage: ${0} <host> <snapshot_repo_name> <snapshot_name>"
 	exit 1
 fi
 
-DEV_RAW=`df ${1} | tail -n 1 | cut -d' ' -f1`
-DEV_REAL=`readlink -e ${DEV_RAW}`
-DEV_FINAL=""
+HOST=${1}
+SNAPSHOT_REPO=${2}
+SNAPSHOT_NAME=${3}
 
-if [ $? == 0 ]; then
-	DEV_FINAL=`echo ${DEV_REAL} | awk -F '/' '{print $NF}' | sed 's/[0-9]*//g'`
-else
-	DEV_FINAL=`echo ${DEV_RAW} | awk -F '/' '{print $NF}' | sed 's/[0-9]*//g'`
-fi
+curl -XPUT "http://${HOST}:9200/_snapshot/${SNAPSHOT_REPO}/${SNAPSHOT_NAME}?wait_for_completion=true"
 
-DEV_ELEVATOR=`cat /sys/block/${DEV_FINAL}/queue/scheduler`
-
-echo $DEV_ELEVATOR | sed 's/.*\[\(.*\)\].*/\1/g'
+echo ""
 
 exit 0
 

@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-# @file set-nreplias.sh
+# @file load-snapshot.sh
 # @brief uCodev Elastic Tools - Utilities
-#	 Set the effective number of replicas
+#	 Loads (restores) an existing snapshot
 #
-# Date: 19/08/2015
+# Date: 30/09/2015
 #
 #   Copyright 2015  Pedro A. Hortas (pah@ucodev.org)
 #
@@ -30,17 +30,18 @@
 # Date:   19/08/2015
 #
 
-if [ ${#} -ne 1 ]; then
-	echo "Usage: ${0} <nr of replicas>"
-	exit 1;
+if [ $# -lt 3 ]; then
+	echo "Usage: ${0} <host> <snapshot_repo_name> <snapshot_name>"
+	exit 1
 fi
 
-curl -XPUT http://localhost:9200/_settings -d "{
-	\"index\": {
-		\"number_of_replicas\": ${1}
-	}
-}"
+HOST=${1}
+SNAPSHOT_REPO=${2}
+SNAPSHOT_NAME=${3}
+
+curl -XPOST "http://${HOST}:9200/_snapshot/${SNAPSHOT_REPO}/${SNAPSHOT_NAME}/_restore"
 
 echo ""
 
 exit 0
+
