@@ -158,8 +158,16 @@ class UETAnalyze(ESShard):
 				self.index_data["started_replica_count"] += 1
 
 			if self.index_data["list"][shard[0]]["size"] == None:
-				cur_index_stats = self.index_stat_get(shard[0])["_all"]
-				self.index_data["list"][shard[0]]["size"] = cur_index_stats["total"]["store"]["size_in_bytes"]
+				try:
+					cur_index_stats = self.index_stat_get(shard[0])["_all"]
+				except Exception as e:
+					print("Possible data inconsistency. Run index-remove-bad.py first")
+					sys.exit(EXIT_FAILURE)
+				try:
+					self.index_data["list"][shard[0]]["size"] = cur_index_stats["total"]["store"]["size_in_bytes"]
+				except Exception as e:
+					print("Data inconsistency detected. Run index-remove-bad.py first.")
+					sys.exit(EXIT_FAILURE)
 				self.index_data["list"][shard[0]]["docs_count"] = cur_index_stats["total"]["docs"]["count"]
 				self.index_data["list"][shard[0]]["docs_deleted"] = cur_index_stats["total"]["docs"]["deleted"]
 				self.index_data["list"][shard[0]]["search_total"] = cur_index_stats["total"]["search"]["query_total"]
@@ -264,7 +272,10 @@ class UETAnalyze(ESShard):
 		print("  * Index with most searches:        %d (%s)" % (self.index_data["max_search_query"][1], self.index_data["max_search_query"][0]))
 		print("  * Index with less searches:        %d (%s)" % (self.index_data["min_search_query"][1], self.index_data["min_search_query"][0]))
 		print("  * Index total search time:         %d" % self.index_data["total_search_time"])
-		print("  * Index average search time:       %.2f ms [Excluding zeros]" % (self.index_data["total_search_time"] / float(len(self.index_data["list"]) - self.index_data["zero_search_time"])))
+		if float(len(self.index_data["list"]) - self.index_data["zero_search_time"]):
+			print("  * Index average search time:       %.2f ms [Excluding zeros]" % (self.index_data["total_search_time"] / float(len(self.index_data["list"]) - self.index_data["zero_search_time"])))
+		else:
+			print("  * Index average search time:       N/A")
 		print("  * Index fastest search time:       %d ms (%s) [Excluding zeros]" % (self.index_data["min_search_time"][1], self.index_data["min_search_time"][0]))
 		print("  * Index slowest search time:       %d ms (%s)" % (self.index_data["max_search_time"][1], self.index_data["max_search_time"][0]))
 
@@ -313,8 +324,10 @@ class UETAnalyze(ESShard):
 			if self.cluster_data["relocating_shards"]:
 				print("       [w] There are shards being relocated")
 
-			if (len(self.shard_data["list"]) / self.index_data["total_replica"]) < (self.cluster_data["number_of_nodes"] - 1):
-				print("       [w] Number of replicas should be set to %d (currently set to %d)" % (self.cluster_data["number_of_nodes"] - 1, (len(self.shard_data["list"]) / self.index_data["total_replica"])))
+			if self.index_data["total_replica"] and(len(self.shard_data["list"]) / self.index_data["total_replica"]) < (self.cluster_data["number_of_data_nodes"] - 1):
+				print("       [w] Number of replicas should be set to %d (currently set to %d)" % (self.cluster_data["number_of_data_nodes"] - 1, (len(self.shard_data["list"]) / self.index_data["total_replica"])))
+			else:
+				print("       [w] No replicas found. Should be set to %d" % self.cluster_data["number_of_data_nodes"] - 1)
 
 		else:
 			print(" [+] All indices look good.")
