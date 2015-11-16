@@ -4,7 +4,7 @@
 # @brief uCodev Elastic Tools
 #        Status analyzer and reporting tool for Elasticsearch clusters.
 #
-# Date: 08/08/2015
+# Date: 16/11/2015
 #
 #   Copyright 2015  Pedro A. Hortas (pah@ucodev.org)
 #
@@ -27,7 +27,7 @@
 #
 # Author: Pedro A. Hortas
 # Email:  pah@ucodev.org
-# Date:   02/08/2015
+# Date:   16/11/2015
 #
 
 
@@ -268,7 +268,10 @@ class UETAnalyze(ESShard):
 		print("  * Index with least documents:      %d (%s) [Excluding zeros]" % (self.index_data["min_docs"][1], self.index_data["min_docs"][0]))
 		print("  * Index total search queries:      %d" % self.index_data["total_search_query"])
 		print("  * Indices without searches:        %d" % self.index_data["zero_search_query"])
-		print("  * Index average search queries:    %.2f [Excluding zeros]" % (self.index_data["total_search_query"] / float(len(self.index_data["list"]) - self.index_data["zero_search_query"])))
+		if float(len(self.index_data["list"]) - self.index_data["zero_search_time"]):
+			print("  * Index average search queries:    %.2f [Excluding zeros]" % (self.index_data["total_search_query"] / float(len(self.index_data["list"]) - self.index_data["zero_search_query"])))
+		else:
+			print("  * Index average search queries:    N/A")
 		print("  * Index with most searches:        %d (%s)" % (self.index_data["max_search_query"][1], self.index_data["max_search_query"][0]))
 		print("  * Index with less searches:        %d (%s)" % (self.index_data["min_search_query"][1], self.index_data["min_search_query"][0]))
 		print("  * Index total search time:         %d" % self.index_data["total_search_time"])
@@ -324,10 +327,11 @@ class UETAnalyze(ESShard):
 			if self.cluster_data["relocating_shards"]:
 				print("       [w] There are shards being relocated")
 
-			if self.index_data["total_replica"] and(len(self.shard_data["list"]) / self.index_data["total_replica"]) < (self.cluster_data["number_of_data_nodes"] - 1):
-				print("       [w] Number of replicas should be set to %d (currently set to %d)" % (self.cluster_data["number_of_data_nodes"] - 1, (len(self.shard_data["list"]) / self.index_data["total_replica"])))
+			if self.index_data["total_replica"]:
+				if (len(self.shard_data["list"]) / self.index_data["total_replica"]) < (self.cluster_data["number_of_data_nodes"]):
+					print("       [w] Number of replicas should be set to %d (currently set to %d)" % (self.cluster_data["number_of_data_nodes"] - 1, ((len(self.shard_data["list"]) / self.index_data["total_replica"]) - 1)))
 			else:
-				print("       [w] No replicas found. Should be set to %d" % self.cluster_data["number_of_data_nodes"] - 1)
+				print("       [w] No replicas found. Should be set to %d" % (int(self.cluster_data["number_of_data_nodes"]) - 1))
 
 		else:
 			print(" [+] All indices look good.")
