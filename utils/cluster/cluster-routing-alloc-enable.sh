@@ -30,10 +30,12 @@
 # Date:   05/11/2015
 #
 
-if [ $? -ne 1 ]; then
+if [ $# -ne 1 ]; then
 	echo "Usage: $0 <host>"
 	exit 1
 fi
+
+HOST=${1}
 
 curl -XPUT http://${HOST}:9200/_settings -d '{
 	"index.routing.allocation.disable_allocation" : false
