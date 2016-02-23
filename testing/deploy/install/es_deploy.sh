@@ -23,12 +23,12 @@
 
 
 PREFIX="${1}"
-ES_VER="1.7.1"
+ES_VER="2.2.0"
 
 mkdir -p /opt/${PREFIX}-elk-solution-v1.0
 ln -s /opt/${PREFIX}-elk-solution-v1.0 /opt/elk-solution
 cd /opt/elk-solution
-wget https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-${ES_VER}.tar.gz
+wget https://download.elasticsearch.org/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/${ES_VER}/elasticsearch-${ES_VER}.tar.gz
 groupadd elasticsearch
 useradd elasticsearch -g elasticsearch
 tar zxvf elasticsearch-${ES_VER}.tar.gz

@@ -23,7 +23,7 @@
 
 
 PREFIX="${1}"
-LS_VER="1.5.3"
+LS_VER="2.2.2"
 
 mkdir -p /opt/${PREFIX}-elk-solution-v1.0
 ln -s /opt/${PREFIX}-elk-solution-v1.0 /opt/elk-solution
